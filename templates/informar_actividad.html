@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informar Actividad - Actividades Recreativas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .seccion {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 8px;
+            vertical-align: top;
+        }
+        
+        td:first-child {
+            width: 30%;
+            font-weight: bold;
+        }
+        
+        input[type="text"], 
+        input[type="email"], 
+        input[type="tel"], 
+        select, 
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+        
+        .contacto-grupo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .contacto-grupo select {
+            flex: 1;
+        }
+        
+        .contacto-grupo input {
+            flex: 2;
+        }
+        
+        .foto-grupo {
+            margin-bottom: 10px;
+        }
+        
+        .error-message {
+            color: red;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        
+        .error-field {
+            border: 1px solid red;
+        }
+        
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .flash-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .flash-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Informar Nueva Actividad Social</h1>
+    
+    <div class="flash-messages" id="flash-messages"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessagesContainer = document.getElementById('flash-messages');
+            const messages = JSON.parse('{{ get_flashed_messages(with_categories=true)|tojson|safe }}');
+            
+            if (messages && messages.length > 0) {
+                messages.forEach(function(message) {
+                    const category = message[0];
+                    const content = message[1];
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'flash-message ' + category;
+                    messageDiv.textContent = content;
+                    flashMessagesContainer.appendChild(messageDiv);
+                });
+            } else {
+                flashMessagesContainer.style.display = 'none';
+            }
+        });
+    </script>
+    
+    <form id="actividadForm" action="/informar-actividad/procesar" method="post" enctype="multipart/form-data">
+        <div class="seccion">¿Dónde?</div>
+        
+        <table>
+            <tr>
+                <td>Región</td>
+                <td>
+                    <select id="region" name="region" required>
+                        <option value="">Seleccione una región</option>
+                    </select>
+                    <div id="region-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Comuna</td>
+                <td>
+                    <select id="comuna" name="comuna" required>
+                        <option value="">Seleccione primero una región</option>
+                    </select>
+                    <div id="comuna-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Sector</td>
+                <td>
+                    <input type="text" id="sector" name="sector" maxlength="100">
+                </td>
+            </tr>
+        </table>
+        
+        <div class="seccion">¿Quién organiza?</div>
+        
+        <table>
+            <tr>
+                <td>Nombre</td>
+                <td>
+                    <input type="text" id="nombre" name="nombre" maxlength="200" required>
+                    <div id="nombre-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>
+                    <input type="email" id="email" name="email" maxlength="100" required>
+                    <div id="email-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Número de celular</td>
+                <td>
+                    <input type="tel" id="celular" name="celular" placeholder="+569XXXXXXXX">
+                    <div id="celular-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Contactar por</td>
+                <td id="contactoContainer">
+                    <div class="contacto-grupo">
+                        <select class="contacto-tipo" name="contacto_tipo[]">
+                            <option value="">Seleccione</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="X">X</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="otra">Otra</option>
+                        </select>
+                        <input type="text" class="contacto-id" name="contacto_id[]" maxlength="50" placeholder="ID o URL de contacto">
+                    </div>
+                    <button type="button" id="agregarContacto">Agregar otro contacto</button>
+                </td>
+            </tr>
+        </table>
+        
+        <div class="seccion">¿Cuándo y de qué trata?</div>
+        
+        <table>
+            <tr>
+                <td>Día hora inicio</td>
+                <td>
+                    <input type="datetime-local" id="inicio" name="inicio" required>
+                    <div id="inicio-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Día hora término</td>
+                <td>
+                    <input type="datetime-local" id="termino" name="termino">
+                    <div id="termino-error" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Descripción</td>
+                <td>
+                    <textarea id="descripcion" name="descripcion" rows="10" maxlength="500"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>Tema</td>
+                <td>
+                    <select id="tema" name="tema" required>
+                        <option value="">Seleccione</option>
+                        <option value="música">Música</option>
+                        <option value="deporte">Deporte</option>
+                        <option value="ciencias">Ciencias</option>
+                        <option value="religión">Religión</option>
+                        <option value="política">Política</option>
+                        <option value="tecnología">Tecnología</option>
+                        <option value="juegos">Juegos</option>
+                        <option value="baile">Baile</option>
+                        <option value="comida">Comida</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                    <div id="tema-error" class="error-message"></div>
+                    
+                    <div id="otroTemaContainer" class="hidden">
+                        <input type="text" id="otroTema" name="otro_tema" maxlength="15" placeholder="Especifique el tema">
+                        <div id="otro-tema-error" class="error-message"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>Foto</td>
+                <td id="fotosContainer">
+                    <div class="foto-grupo">
+                        <input type="file" class="foto-input" name="fotos[]" accept="image/*" required>
+                        <div id="fotos-error" class="error-message"></div>
+                    </div>
+                    <button type="button" id="agregarFoto">Agregar otra foto</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <button type="submit" id="submitBtn">Agregar esta actividad</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+      
+    <div id="confirmacionModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmación</h2>
+            <p>¿Está seguro que desea agregar esta actividad?</p>
+            <button id="confirmarBtn">Sí, estoy seguro</button>
+            <button id="cancelarBtn">No, no estoy seguro, quiero volver al formulario</button>
+        </div>
+    </div>
+      
+    <div id="exitoModal" class="modal">
+        <div class="modal-content">
+            <h2>Actividad Registrada</h2>
+            <p>Hemos recibido su información, muchas gracias y suerte en su actividad</p>
+            <button id="volverBtn">Volver a la portada</button>
+        </div>
+    </div>
+
+    <!-- Variables para JavaScript -->
+    <script>
+        const regionesData = JSON.parse('{{ regiones|tojson|safe }}');
+        const comunasData = JSON.parse('{{ comunas|tojson|safe if comunas else "[]" }}');
+        const formData = JSON.parse('{{ form|tojson|safe if form else "null" }}');
+        const erroresData = JSON.parse('{{ errores|tojson|safe if errores else "null" }}');
+        
+        // Aplicar errores y valores del formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar valores del formulario si existen
+            if (formData) {
+                // Campos básicos
+                if (formData.sector) document.getElementById('sector').value = formData.sector;
+                if (formData.nombre) document.getElementById('nombre').value = formData.nombre;
+                if (formData.email) document.getElementById('email').value = formData.email;
+                if (formData.celular) document.getElementById('celular').value = formData.celular;
+                if (formData.descripcion) document.getElementById('descripcion').value = formData.descripcion;
+                if (formData.inicio) document.getElementById('inicio').value = formData.inicio;
+                if (formData.termino) document.getElementById('termino').value = formData.termino;
+                
+                // Tema y otro tema
+                if (formData.tema) {
+                    document.getElementById('tema').value = formData.tema;
+                    if (formData.tema === 'otro') {
+                        document.getElementById('otroTemaContainer').classList.remove('hidden');
+                        if (formData.otro_tema) {
+                            document.getElementById('otroTema').value = formData.otro_tema;
+                        }
+                    }
+                }
+            }
+            
+            // Aplicar errores si existen
+            if (erroresData) {
+                Object.keys(erroresData).forEach(function(key) {
+                    const errorElement = document.getElementById(key.replace('_', '-') + '-error');
+                    if (errorElement) {
+                        errorElement.textContent = erroresData[key];
+                        
+                        // Marcar el campo con error
+                        const inputField = document.getElementById(key.replace('_', '-'));
+                        if (inputField) {
+                            inputField.classList.add('error-field');
+                        }
+                        
+                        // Caso especial para fotos
+                        if (key === 'fotos') {
+                            const fotoInputs = document.querySelectorAll('.foto-input');
+                            if (fotoInputs.length > 0) {
+                                fotoInputs[0].classList.add('error-field');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="/static/js/informar-actividad.js"></script>
+</body>
+</html>

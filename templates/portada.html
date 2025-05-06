@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Actividades Recreativas</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        header {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+        }
+        
+        main {
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        img {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bienvenido a Actividades Recreativas</h1>
+        <nav>
+            <ul>
+                <li><a href="/informar-actividad">Informar actividad</a></li>
+                <li><a href="/listado-actividades">Ver listado de actividades</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section>
+            <h2>Últimas actividades agregadas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Inicio</th>
+                        <th>Término</th>
+                        <th>Comuna</th>
+                        <th>Sector</th>
+                        <th>Tema</th>
+                        <th>Foto</th>
+                    </tr>
+                </thead>
+                <tbody id="actividadesPortadaTableBody">
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="/static/js/portada.js"></script>
+</body>
+</html>

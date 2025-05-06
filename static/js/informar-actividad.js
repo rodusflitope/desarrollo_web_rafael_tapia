@@ -71,13 +71,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const regionSelect = document.getElementById('region');
     const comunaSelect = document.getElementById('comuna');
     
-    region_comuna.regiones.forEach(region => {
-        const option = document.createElement('option');
-        option.value = region.numero;
-        option.textContent = region.nombre;
-        regionSelect.appendChild(option);
-    });
-
+    // Inicializar selects con datos del backend (si existen)
+    if (typeof regionesData !== 'undefined' && regionesData && regionesData.length > 0) {
+        // Llenar select de regiones con los datos pasados desde el backend
+        regionesData.forEach(region => {
+            const option = document.createElement('option');
+            option.value = region[0];
+            option.textContent = region[1];
+            if (formData && formData.region == region[0].toString()) {
+                option.selected = true;
+            }
+            regionSelect.appendChild(option);
+        });
+    }
+    
+    // Llenar select de comunas si hay datos desde el backend
+    if (typeof comunasData !== 'undefined' && comunasData && comunasData.length > 0) {
+        // Limpiar opciones existentes excepto la primera
+        while (comunaSelect.options.length > 1) {
+            comunaSelect.remove(1);
+        }
+        
+        comunasData.forEach(comuna => {
+            const option = document.createElement('option');
+            option.value = comuna[0];
+            option.textContent = comuna[1];
+            if (formData && formData.comuna == comuna[0].toString()) {
+                option.selected = true;
+            }
+            comunaSelect.appendChild(option);
+        });
+    }
+    
+    // Establecer el tema seleccionado si existe en los datos del backend
+    if (typeof formData !== 'undefined' && formData && formData.tema) {
+        const temaSelect = document.getElementById('tema');
+        for (let i = 0; i < temaSelect.options.length; i++) {
+            if (temaSelect.options[i].value === formData.tema) {
+                temaSelect.options[i].selected = true;
+                break;
+            }
+        }
+        
+        // Mostrar campo de otro tema si es necesario
+        if (formData.tema === 'otro') {
+            document.getElementById('otroTemaContainer').classList.remove('hidden');
+        }
+    }
+    
     const now = new Date();
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -133,17 +174,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    const tipoContactoSelect = document.getElementById('tipoContacto');
-    const idContactoInput = document.getElementById('idContacto');
+    const agregarContactoBtn = document.getElementById('agregarContacto');
+    const contactoContainer = document.getElementById('contactoContainer');
     
-    tipoContactoSelect.addEventListener('change', function() {
-        if (this.value) {
-            idContactoInput.style.display = 'block';
-            idContactoInput.required = true;
-        } else {
-            idContactoInput.style.display = 'none';
-            idContactoInput.required = false;
-            idContactoInput.value = '';
+    agregarContactoBtn.addEventListener('click', function() {
+        const contactoGrupos = contactoContainer.querySelectorAll('.contacto-grupo');
+        
+        if (contactoGrupos.length < 5) {
+            const nuevoGrupo = document.createElement('div');
+            nuevoGrupo.className = 'contacto-grupo';
+            nuevoGrupo.innerHTML = `
+                <select class="contacto-tipo" name="contacto_tipo[]">
+                    <option value="">Seleccione</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="telegram">Telegram</option>
+                    <option value="X">X</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="otra">Otra</option>
+                </select>
+                <input type="text" class="contacto-id" name="contacto_id[]" maxlength="50" placeholder="ID o URL de contacto">
+                <button type="button" class="eliminar-contacto">X</button>
+            `;
+            
+            contactoContainer.insertBefore(nuevoGrupo, agregarContactoBtn);
+            
+            nuevoGrupo.querySelector('.eliminar-contacto').addEventListener('click', function() {
+                nuevoGrupo.remove();
+                
+                if (contactoContainer.querySelectorAll('.contacto-grupo').length < 5) {
+                    agregarContactoBtn.style.display = 'inline-block';
+                }
+            });
+        }
+        
+        if (contactoContainer.querySelectorAll('.contacto-grupo').length >= 5) {
+            agregarContactoBtn.style.display = 'none';
         }
     });
     
@@ -167,9 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 nuevoGrupo.remove();
                 const fotoInputs = fotosContainer.querySelectorAll('.foto-input');
                 agregarFotoBtn.style.display = fotoInputs.length >= 5 ? 'none' : 'inline-block';
-                if (fotoInputs.length < 1) {
-                    
-                } else {
+                if (fotoInputs.length >= 1) {
                     const primerInputRequerido = fotosContainer.querySelector('.foto-input');
                     if(primerInputRequerido) primerInputRequerido.required = true;
                 }
@@ -228,15 +292,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const celularInput = document.getElementById('celular');
-        if (celularInput.value && !celularInput.checkValidity()) {
+        if (celularInput.value && !(/^\+569\d{8}$/.test(celularInput.value))) {
             errorMessages.push('El número de celular debe tener el formato +569xxxxxxxx.');
             valido = false;
         }
         
-        if (tipoContactoSelect.value && idContactoInput.required) {
-            if (idContactoInput.value.length < 4 || idContactoInput.value.length > 50) {
-                errorMessages.push('El ID de contacto debe tener entre 4 y 50 caracteres.');
+        const contactoTipos = document.querySelectorAll('.contacto-tipo');
+        const contactoIds = document.querySelectorAll('.contacto-id');
+        
+        for (let i = 0; i < contactoTipos.length; i++) {
+            if (contactoTipos[i].value && !contactoIds[i].value) {
+                errorMessages.push('Debe proporcionar un ID para cada tipo de contacto seleccionado.');
                 valido = false;
+                break;
+            } else if (!contactoTipos[i].value && contactoIds[i].value) {
+                errorMessages.push('Debe seleccionar un tipo para cada ID de contacto proporcionado.');
+                valido = false;
+                break;
+            } else if (contactoTipos[i].value && contactoIds[i].value) {
+                if (contactoIds[i].value.length < 4 || contactoIds[i].value.length > 50) {
+                    errorMessages.push('El ID de contacto debe tener entre 4 y 50 caracteres.');
+                    valido = false;
+                    break;
+                }
             }
         }
         
@@ -289,12 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('confirmarBtn').addEventListener('click', function() {
         confirmacionModal.style.display = 'none';
-        
-        exitoModal.style.display = 'block';
-        
-        setTimeout(() => {
-            window.location.href = 'portada.html';
-        }, 3000);
+        formulario.submit();
     });
     
     document.getElementById('cancelarBtn').addEventListener('click', function() {
@@ -302,6 +375,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('volverBtn').addEventListener('click', function() {
-        window.location.href = 'portada.html';
+        window.location.href = '/';
     });
 });

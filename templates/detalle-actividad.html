@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de Actividad - Actividades Recreativas</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        nav li {
+            display: inline;
+            margin: 0 10px;
+        }
+        
+        .galeria-fotos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .mini-foto {
+            width: 150px;
+            height: 100px;
+        }
+        
+        .btn {
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Detalle de Actividad</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Portada</a></li>
+                <li><a href="/informar-actividad">Informar actividad</a></li>
+                <li><a href="/listado-actividades">Listado de actividades</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="detalle">
+            <h2>Detalles de la Actividad</h2>
+            
+            <div class="detalle-info">
+                <h3>Información del evento</h3>
+                <p><strong>Inicio:</strong> {{ actividad.inicio }}</p>
+                <p><strong>Término:</strong> {{ actividad.termino or '-' }}</p>
+                <p><strong>Región:</strong> {{ actividad.region }}</p>
+                <p><strong>Comuna:</strong> {{ actividad.comuna }}</p>
+                <p><strong>Sector:</strong> {{ actividad.sector or '-' }}</p>
+                <p><strong>Tema:</strong> {{ actividad.tema }}</p>
+            </div>
+            
+            <div class="detalle-info">
+                <h3>Organizador</h3>
+                <p><strong>Nombre:</strong> {{ actividad.nombre_organizador }}</p>
+                <p><strong>Email:</strong> {{ actividad.email }}</p>
+                <p><strong>Celular:</strong> {{ actividad.celular or '-' }}</p>
+                
+                {% if actividad.contactos and actividad.contactos|length > 0 %}
+                <h3>Contacto adicional</h3>
+                <div>
+                    {% for contacto in actividad.contactos %}
+                    <p><strong>{{ contacto.tipo }}:</strong> {{ contacto.identificador }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="detalle-info">
+                <h3>Descripción</h3>
+                <p>{{ actividad.descripcion or 'Sin descripción' }}</p>
+            </div>
+            
+            <div class="detalle-fotos">
+                <h3>Fotos ({{ actividad.fotos|length }})</h3>
+                <div class="galeria-fotos">
+                    {% if actividad.fotos|length == 0 %}
+                    <p>No hay fotos disponibles</p>
+                    {% else %}
+                    {%- for foto in actividad.fotos -%}
+                    <img class="mini-foto" alt="Foto de la actividad" src="/static/img/placeholder.jpg">
+                    <script>
+                        document.currentScript.previousElementSibling.src = "/static/{{ foto.ruta | e }}";
+                    </script>
+                    {%- endfor -%}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detalle-actions">
+                <a href="/listado-actividades" class="btn">Volver al listado</a>
+                <a href="/" class="btn">Volver a la portada</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

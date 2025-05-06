@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Actividades - Actividades Recreativas</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 15px;
+            padding: 0;
+            line-height: 1.4;
+        }
+        
+        header {
+            background-color: #eee;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        nav li {
+            display: inline;
+            margin: 0 10px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        section {
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .actividad-row {
+            cursor: pointer;
+        }
+        
+        .actividad-row:hover {
+            background-color: #f0f0f0;
+        }
+                
+        .paginacion {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .btn-pagina {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .btn-pagina:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .info-pagina {
+            margin: 0 10px;
+        }
+        
+        button, .btn {
+            padding: 8px 15px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        button:hover, .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Listado de Actividades</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Portada</a></li>
+                <li><a href="/informar-actividad">Informar actividad</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="listado">
+            <h2>Actividades disponibles</h2>
+            <table id="tablaActividades">
+                <thead>
+                    <tr>
+                        <th>Inicio</th>
+                        <th>Término</th>
+                        <th>Comuna</th>
+                        <th>Sector</th>
+                        <th>Tema</th>
+                        <th>Nombre Organizador</th>
+                        <th>Total fotos</th>
+                    </tr>
+                </thead>
+                <tbody id="actividadesTableBody">
+                </tbody>
+            </table>
+            
+            <div class="paginacion">
+                <div id="paginacionControles">
+                </div>
+            </div>
+        </section>
+    </main>
+    +
+    <script src="/static/js/listado-actividades.js"></script> 
+</body>
+</html>
