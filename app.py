@@ -461,5 +461,93 @@ def serve_img(path):
 def serve_css(path):
     return app.send_static_file(f'css/{path}')
 
+#Rutas para obtener datos para graficos
+@app.route('/api/estadisticas/actividades-por-dia')
+def api_actividades_por_dia():
+    """API endpoint para obtener actividades por día"""
+    session = Session()
+    try:
+        resultado = session.query(
+            func.date(Actividad.dia_hora_inicio).label('fecha'),
+            func.count(Actividad.id).label('cantidad')
+        ).group_by(func.date(Actividad.dia_hora_inicio))\
+         .order_by(func.date(Actividad.dia_hora_inicio))\
+         .all()
+        
+        datos = [{'fecha': fecha.strftime('%Y-%m-%d'), 'cantidad': cantidad} 
+                for fecha, cantidad in resultado]
+        
+        return jsonify(datos)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+@app.route('/api/estadisticas/actividades-por-tipo')
+def api_actividades_por_tipo():
+    """API endpoint para obtener actividades agrupadas por tipo"""
+    session = Session()
+    try:
+        resultado = session.query(
+            ActividadTema.tema,
+            ActividadTema.glosa_otro,
+            func.count(ActividadTema.id).label('cantidad')
+        ).group_by(ActividadTema.tema, ActividadTema.glosa_otro)\
+         .order_by(func.count(ActividadTema.id).desc())\
+         .all()
+        
+        datos = []
+        for tema, glosa_otro, cantidad in resultado:
+            nombre_tema = glosa_otro if tema == 'otro' and glosa_otro else tema
+            datos.append({'tema': nombre_tema, 'cantidad': cantidad})
+        
+        return jsonify(datos)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+@app.route('/api/estadisticas/actividades-por-mes-horario')
+def api_actividades_por_mes_horario():
+    """API endpoint para obtener actividades por mes y horario de inicio"""
+    session = Session()
+    try:
+        actividades = session.query(
+            func.year(Actividad.dia_hora_inicio).label('año'),
+            func.month(Actividad.dia_hora_inicio).label('mes'),
+            func.hour(Actividad.dia_hora_inicio).label('hora')
+        ).all()
+
+        datos_agrupados = {}
+        for año, mes, hora in actividades:
+            mes_año = f"{año}-{mes:02d}"
+            if mes_año not in datos_agrupados:
+                datos_agrupados[mes_año] = {'mañana': 0, 'mediodia': 0, 'tarde': 0}
+
+            if 6 <= hora <= 11:
+                datos_agrupados[mes_año]['mañana'] += 1
+            elif 12 <= hora <= 17:
+                datos_agrupados[mes_año]['mediodia'] += 1
+            elif 18 <= hora <= 23:
+                datos_agrupados[mes_año]['tarde'] += 1
+
+        datos = []
+        for mes_año in sorted(datos_agrupados.keys()):
+            datos.append({
+                'mes': mes_año,
+                'mañana': datos_agrupados[mes_año]['mañana'],
+                'mediodia': datos_agrupados[mes_año]['mediodia'],
+                'tarde': datos_agrupados[mes_año]['tarde']
+            })
+        
+        return jsonify(datos)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
