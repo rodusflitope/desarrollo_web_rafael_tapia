@@ -55,7 +55,7 @@
         <section class="grafico-seccion">
             <h2>Cantidad de actividades por día</h2>
             <div class="grafico-container">
-                <img src="/img/grafdia.png" alt="Gráfico de líneas - Actividades por día" class="grafico">
+                <div id="grafico-actividades-dia"></div>
                 <p class="grafico-descripcion">Este gráfico muestra la cantidad de actividades registradas por día durante el último mes.</p>
             </div>
         </section>
@@ -63,7 +63,7 @@
         <section class="grafico-seccion">
             <h2>Distribución de actividades por tipo</h2>
             <div class="grafico-container">
-                <img src="/img/grafcirc.png" alt="Gráfico de torta - Actividades por tipo" class="grafico">
+                <div id="grafico-actividades-tipo"></div>
                 <p class="grafico-descripcion">Este gráfico muestra la distribución del total de actividades según el tipo o tema.</p>
             </div>
         </section>
@@ -71,7 +71,7 @@
         <section class="grafico-seccion">
             <h2>Actividades por momento del día y mes</h2>
             <div class="grafico-container">
-                <img src="/img/grafmont.png" alt="Gráfico de barras - Actividades por momento del día" class="grafico">
+                <div id="grafico-actividades-dia-mes"></div>
                 <p class="grafico-descripcion">Este gráfico muestra la cantidad de actividades que inician en la mañana, mediodía y tarde para cada mes del año.</p>
             </div>
         </section>
@@ -84,5 +84,7 @@
     <footer>
         <p>© 2025 Actividades Recreativas - CC5002</p>
     </footer>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="module" src="static/js/estadisticas.js"></script>
 </body>
 </html>

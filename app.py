@@ -507,7 +507,7 @@ def api_actividades_por_tipo():
     finally:
         session.close()
 
-@app.route('/api/estadisticas/actividades-por-mes-horario')
+@app.route('/api/estadisticas/actividades-por-mes')
 def api_actividades_por_mes_horario():
     """API endpoint para obtener actividades por mes y horario de inicio"""
     session = Session()
@@ -524,11 +524,11 @@ def api_actividades_por_mes_horario():
             if mes_año not in datos_agrupados:
                 datos_agrupados[mes_año] = {'mañana': 0, 'mediodia': 0, 'tarde': 0}
 
-            if 6 <= hora <= 11:
+            if 4 <= hora <= 11:
                 datos_agrupados[mes_año]['mañana'] += 1
             elif 12 <= hora <= 17:
                 datos_agrupados[mes_año]['mediodia'] += 1
-            elif 18 <= hora <= 23:
+            elif 18 <= hora <= 23 or 0 <= hora <= 3:
                 datos_agrupados[mes_año]['tarde'] += 1
 
         datos = []
