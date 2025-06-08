@@ -60,3 +60,25 @@ def validar_informar_actividad(form, files):
                 errores[f'contacto_tipo_{i}'] = 'Debe seleccionar un tipo de contacto'
     
     return errores if errores else None
+
+def validar_comentario(form_data):
+    """Valida los datos del formulario de comentarios"""
+    errores = {}
+
+    nombre = form_data.get('nombre', '').strip()
+    if not nombre:
+        errores['nombre'] = 'El nombre es obligatorio'
+    elif len(nombre) < 3:
+        errores['nombre'] = 'El nombre debe tener al menos 3 caracteres'
+    elif len(nombre) > 80:
+        errores['nombre'] = 'El nombre no puede tener mas de 80 caracteres'
+
+    texto = form_data.get('texto', '').strip()
+    if not texto:
+        errores['texto'] = 'El comentario es obligatorio'
+    elif len(texto) < 5:
+        errores['texto'] = 'El comentario debe tener al menos 5 caracteres'
+    elif len(texto) > 300:
+        errores['texto'] = 'El comentario no puede tener mas de 300 caracteres'
+    
+    return errores if errores else None

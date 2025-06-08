@@ -38,6 +38,32 @@
             display: inline-block;
             margin: 5px;
         }
+        
+        .error {
+            color: #d92a2a;
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        .comentario {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +121,7 @@
                     <p>No hay fotos disponibles</p>
                     {% else %}
                     {%- for foto in actividad.fotos -%}
-                    <img class="mini-foto" alt="Foto de la actividad" src="/static/img/placeholder.jpg">
+                    <img class="mini-foto" alt="Foto de la actividad" src="/static/img/placeholder.png">
                     <script>
                         document.currentScript.previousElementSibling.src = "/static/{{ foto.ruta | e }}";
                     </script>
@@ -104,11 +130,39 @@
                 </div>
             </div>
             
+            <div class="detalle-comentarios">
+                <h3>Comentarios</h3>
+                <div id="lista-comentarios">
+                    
+                </div>
+            </div>
+
+             <div class="formulario-comentario">
+                <h4>Agregar nuevo comentario</h4>
+                
+                <form method="POST" action="/actividad/{{ actividad.id }}/comentario" id="form-comentario">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                        <div class="error" id="error-nombre"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="texto">Comentario:</label>
+                        <textarea id="texto" name="texto" rows="4" cols="50" required></textarea>
+                        <div class="error" id="error-texto"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Agregar comentario</button>
+                </form>
+            </div>
+
             <div class="detalle-actions">
                 <a href="/listado-actividades" class="btn">Volver al listado</a>
                 <a href="/" class="btn">Volver a la portada</a>
             </div>
         </section>
     </main>
+    <script src="/static/js/detalle-actividad.js"></script>
 </body>
 </html>

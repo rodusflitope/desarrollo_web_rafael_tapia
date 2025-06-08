@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-from utils.validation import validar_informar_actividad
+from utils.validation import validar_informar_actividad, validar_comentario
 
 # Cargar variables desde el archivo .env
 load_dotenv()
@@ -88,6 +88,15 @@ class ContactarPor(Base):
     identificador = Column(String(150), nullable=False)
     actividad_id = Column(Integer, ForeignKey('actividad.id'), nullable=False)
     actividad = relationship("Actividad", backref="contactos")
+
+class Comentario(Base):
+    __tablename__ = 'comentario'
+    id = Column(Integer, primary_key=True)
+    nombre = Column(String(80), nullable=False)
+    texto = Column(String(300), nullable=False)
+    fecha = Column(DateTime, nullable=False)
+    actividad_id = Column(Integer, ForeignKey('actividad.id'), nullable=False)
+    actividad = relationship("Actividad", backref="comentarios")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -405,7 +414,6 @@ def detalle_actividad(actividad_id):
          .join(Region, Comuna.region_id == Region.id)\
          .join(ActividadTema, Actividad.id == ActividadTema.actividad_id)\
          .filter(Actividad.id == actividad_id).first()
-        
         if not actividad:
             return jsonify({"error": "Actividad no encontrada"}), 404
 
@@ -416,6 +424,9 @@ def detalle_actividad(actividad_id):
         # Formatear los datos para el template
         tema_display = actividad.glosa_otro if actividad.tema == 'otro' else actividad.tema
         
+        # OBtener comentarios
+        comentarios = session.query(Comentario).filter(Comentario.actividad_id == actividad_id).all()
+
         actividad_formateada = { 
             'id': actividad.id,
             'inicio': actividad.dia_hora_inicio.strftime('%Y-%m-%d %H:%M') if actividad.dia_hora_inicio else '',
@@ -429,7 +440,9 @@ def detalle_actividad(actividad_id):
             'celular': actividad.celular if actividad.celular else '',
             'descripcion': actividad.descripcion if actividad.descripcion else '',
             'fotos': [{'id': foto.id, 'ruta': foto.ruta_archivo, 'nombre': foto.nombre_archivo} for foto in fotos],
-            'contactos': [{'id': contacto.id, 'tipo': contacto.nombre, 'identificador': contacto.identificador} for contacto in contactos]
+            'contactos': [{'id': contacto.id, 'tipo': contacto.nombre, 'identificador': contacto.identificador} for contacto in contactos],
+            'comentarios': [{'id': comentario.id, 'nombre': comentario.nombre, 'texto': comentario.texto, 
+                             'fecha': comentario.fecha.strftime('%Y-%m-%d %H:%M')} for comentario in comentarios]
         }
         
         # Determinar tipo de respuesta (JSON para AJAX o HTML para navegación directa)
@@ -546,8 +559,41 @@ def api_actividades_por_mes_horario():
     finally:
         session.close()
 
+@app.route('/actividad/<int:actividad_id>/comentario', methods=['POST'])
+def agregar_comentario(actividad_id):
+    """Procesa el formulario para agregar un nuevo comentario"""
+    session = Session()
+    try:
+        actividad_existe = session.query(Actividad).filter(Actividad.id == actividad_id).first()
+        if not actividad_existe:
+            return jsonify({"error": "Actividad no encontrada"}), 404
+        
+        errores = validar_comentario(request.form)
+        
+        if errores:
+            primer_error = list(errores.values())[0]
+            return jsonify({"error": primer_error}), 400
 
-
+        nombre = request.form.get('nombre').strip()
+        texto = request.form.get('texto').strip()
+        
+        nuevo_comentario = Comentario(
+            nombre=nombre,
+            texto=texto,
+            fecha=datetime.now(),
+            actividad_id=actividad_id
+        )
+        
+        session.add(nuevo_comentario)
+        session.commit()
+        
+        return jsonify({"success": "Comentario agregado exitosamente"})
+        
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Error al agregar el comentario"}), 500
+    finally:
+        session.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
