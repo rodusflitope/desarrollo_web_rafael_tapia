@@ -60,10 +60,14 @@
         }
         
         .actividad-row {
+            cursor: default;
+        }
+        
+        .clickable-cell {
             cursor: pointer;
         }
         
-        .actividad-row:hover {
+        .actividad-row:hover .clickable-cell {
             background-color: #f0f0f0;
         }
                 
@@ -103,6 +107,20 @@
         button:hover, .btn:hover {
             background-color: #0056b3;
         }
+        
+        .btn-evaluar {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+        
+        .btn-evaluar:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -124,16 +142,16 @@
             <table id="tablaActividades">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Inicio</th>
-                        <th>Término</th>
-                        <th>Comuna</th>
                         <th>Sector</th>
+                        <th>Nombre</th>
                         <th>Tema</th>
-                        <th>Nombre Organizador</th>
-                        <th>Total fotos</th>
+                        <th>Nota</th>
+                        <th>Evaluar</th>
                     </tr>
                 </thead>
-                <tbody id="actividadesTableBody">
+                <tbody id="actividadesRealizadasTableBody">
                 </tbody>
             </table>
             
@@ -144,6 +162,6 @@
         </section>
     </main>
     +
-    <script src="/static/js/listado-actividades.js"></script> 
+    <script src="/static/js/actividades-realizadas.js"></script> 
 </body>
 </html>

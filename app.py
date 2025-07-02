@@ -98,6 +98,13 @@ class Comentario(Base):
     actividad_id = Column(Integer, ForeignKey('actividad.id'), nullable=False)
     actividad = relationship("Actividad", backref="comentarios")
 
+class ActividadNota(Base):
+    __tablename__ = 'nota'
+    id = Column(Integer, primary_key=True)
+    actividad_id = Column(Integer, ForeignKey('actividad.id'), nullable=False)
+    nota = Column(Integer, nullable=False)
+    actividad = relationship("Actividad", backref="notas")
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -392,6 +399,74 @@ def listado_actividades():
     """Renderiza la página de listado de actividades"""
     return render_template('listado-actividades.html')
 
+@app.route('/actividades-realizadas')
+def actividades_realizadas():
+    """Renderiza la página de actividades realizadas"""
+    return render_template('actividades-realizadas.html')
+
+@app.route('/api/actividades-realizadas')
+def api_actividades_realizadas():
+    """API endpoint para obtener actividades realizadas en formato JSON con paginación"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+    
+    session = Session()
+    try:
+        total_actividades = session.query(func.count(Actividad.id))\
+            .filter(Actividad.dia_hora_termino < datetime.now())\
+            .scalar()
+        
+        total_pages = (total_actividades + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        actividad_ids = session.query(Actividad.id)\
+            .filter(Actividad.dia_hora_termino < datetime.now())\
+            .order_by(Actividad.dia_hora_inicio.desc())\
+            .offset(offset).limit(per_page).all()
+        
+        actividad_ids = [id[0] for id in actividad_ids]
+        
+        actividades_formateadas = []
+        for act_id in actividad_ids:
+            actividad_data = session.query(
+                Actividad.id,
+                Actividad.dia_hora_inicio,
+                Actividad.sector,
+                Actividad.nombre.label('nombre'),
+                ActividadTema.tema,
+                ActividadTema.glosa_otro
+            ).join(ActividadTema, Actividad.id == ActividadTema.actividad_id)\
+             .filter(Actividad.id == act_id)\
+             .first()
+            
+            if actividad_data:
+                nota_promedio = session.query(func.avg(ActividadNota.nota))\
+                    .filter(ActividadNota.actividad_id == act_id)\
+                    .scalar()
+                
+                tema_display = actividad_data.glosa_otro if actividad_data.tema == 'otro' else actividad_data.tema
+                nota_display = round(nota_promedio) if nota_promedio else '-'
+                
+                actividades_formateadas.append({
+                    'id': actividad_data.id,
+                    'fecha_inicio': actividad_data.dia_hora_inicio.strftime('%Y-%m-%d'),
+                    'sector': actividad_data.sector or '-',
+                    'nombre': actividad_data.nombre,
+                    'tema': tema_display,
+                    'nota': nota_display
+                })
+        
+        return jsonify({
+            'actividades': actividades_formateadas,
+            'paginacion': {
+                'pagina_actual': page,
+                'total_paginas': total_pages,
+                'total_actividades': total_actividades
+            }
+        })
+    finally:
+        session.close()
+
 @app.route('/actividad/<int:actividad_id>')
 def detalle_actividad(actividad_id):
     session = Session()
@@ -592,6 +667,49 @@ def agregar_comentario(actividad_id):
     except Exception as e:
         session.rollback()
         return jsonify({"error": "Error al agregar el comentario"}), 500
+    finally:
+        session.close()
+
+@app.route('/api/evaluar-actividad', methods=['POST'])
+def evaluar_actividad():
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'success': False, 'message': 'No se recibieron datos'})
+    
+    actividad_id = data.get('actividad_id')
+    nota = data.get('nota')
+    
+    if not actividad_id or nota is None:
+        return jsonify({'success': False, 'message': 'Faltan datos requeridos'})
+    
+    if not isinstance(nota, int) or nota < 1 or nota > 7:
+        return jsonify({'success': False, 'message': 'La nota debe ser un entero entre 1 y 7'})
+    
+    session = Session()
+    try:
+        actividad_existe = session.query(Actividad).filter(Actividad.id == actividad_id).first()
+        if not actividad_existe:
+            return jsonify({'success': False, 'message': 'La actividad no existe'})
+        
+        session.query(ActividadNota).filter(ActividadNota.actividad_id == actividad_id).delete()
+        
+        nueva_nota = ActividadNota(
+            actividad_id=actividad_id,
+            nota=nota
+        )
+        session.add(nueva_nota)
+        session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Nota actualizada exitosamente',
+            'nota_promedio': nota
+        })
+    
+    except Exception as e:
+        session.rollback()
+        return jsonify({'success': False, 'message': f'Error interno: {str(e)}'})
     finally:
         session.close()
 

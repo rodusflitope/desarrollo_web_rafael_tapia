@@ -28,3 +28,8 @@ Se hicieron 3 endpoints distintos para tener la data de los graficos por simplic
 
 ### Obtencion de data de comentarios
 Se hizo la obtencion de la data de los comentarios en el mismo endpoint que trae la data de la actividad.
+
+# Tarea 4
+
+### Implementación hecha en flask
+Debido a error del alumno se hizo la tarea en flask en vez de springboot. se entiende si no hay puntaje.
